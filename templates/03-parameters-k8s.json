@@ -1,0 +1,64 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "resourceName": {
+            "value": "azuredevops-demo"
+        },
+        "location": {
+            "value": "westeurope"
+        },
+        "dnsPrefix": {
+            "value": "azuredevops-demo-dns"
+        },
+        "agentCount": {
+            "value": 3
+        },
+        "agentVMSize": {
+            "value": "Standard_B2s"
+        },
+        "servicePrincipalClientId": {
+            "reference": {
+              "keyVault": {
+                "id": "/subscriptions/efec8216-08f0-482e-a7d4-90ada163eff2/resourceGroups/devkeyvaultmain/providers/Microsoft.KeyVault/vaults/devkeyvaultmain"
+              },
+              "secretName": "adappid"
+            }
+          },
+        "servicePrincipalClientSecret": {
+            "reference": {
+              "keyVault": {
+                "id": "/subscriptions/efec8216-08f0-482e-a7d4-90ada163eff2/resourceGroups/devkeyvaultmain/providers/Microsoft.KeyVault/vaults/devkeyvaultmain"
+              },
+              "secretName": "addemosp"
+            }
+          },
+        "kubernetesVersion": {
+            "value": "1.12.7"
+        },
+        "networkPlugin": {
+            "value": "azure"
+        },
+        "enableRBAC": {
+            "value": true
+        },
+        "enableHttpApplicationRouting": {
+            "value": true
+        },
+        "vnetSubnetID": {
+            "value": "/subscriptions/efec8216-08f0-482e-a7d4-90ada163eff2/resourceGroups/azuredevops-demo/providers/Microsoft.Network/virtualNetworks/azuredevops-demo-vnet/subnets/default"
+        },
+        "serviceCidr": {
+            "value": "10.0.0.0/16"
+        },
+        "dnsServiceIP": {
+            "value": "10.0.0.10"
+        },
+        "dockerBridgeCidr": {
+            "value": "172.17.0.1/16"
+        },
+        "principalId": {
+            "value": "bf66163b-2f46-4c77-8189-c59ae0607cf4"
+        }
+    }
+}

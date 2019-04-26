@@ -22,5 +22,6 @@ foreach ($template in `
     New-AzureRmResourceGroupDeployment -ResourceGroupName $rg_name `
         -TemplateFile $template.fullname `
         -TemplateParameterFile ($template.fullname -replace "-template-", "-parameters-") `
-        -Name $template.name
+        -Name $template.name `
+        -Verbose
 }
