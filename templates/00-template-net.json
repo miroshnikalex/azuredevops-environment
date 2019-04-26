@@ -1,0 +1,63 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vnetName": {
+            "type": "string"
+        },
+        "RGName": {
+            "type": "string"
+        },
+        "vnetLocation": {
+            "type": "string"
+        },
+        "addressPrefix": {
+            "type": "string"
+        },
+        "DevSubnetName": {
+            "type": "string"
+        },
+        "DevSubnetAddressPrefix": {
+            "type": "string"
+        },
+        "ProdSubnetName": {
+            "type": "string"
+        },
+        "ProdSubnetAddressPrefix": {
+            "type": "string"
+        },
+        "enableDdosProtection": {
+            "type": "bool"
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "2018-08-01",
+            "name": "[parameters('vnetName')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "location": "[parameters('vnetLocation')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('addressPrefix')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('DevSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('DevSubnetAddressPrefix')]"
+                        }
+                    },
+                    {
+                        "name": "[parameters('ProdSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('ProdSubnetAddressPrefix')]"
+                        }
+                    }
+                ],
+                "enableDdosProtection": "[parameters('enableDdosProtection')]"
+            }
+        }
+    ]
+}
