@@ -12,5 +12,7 @@ if (-not (Get-AzureRmResourceGroup -name $rg_name -ErrorAction SilentlyContinue)
     Write-Host "Resource group $rg_name does not exist"
 }
 else {
-    Remove-AzureRmResourceGroup -Name $rg_name -Force
+    Remove-AzureRmResourceGroup -Name $rg_name -Force `
+    -Verbose
+    Disconnect-AzureRmAccount -Username $user_name -Verbose
 }

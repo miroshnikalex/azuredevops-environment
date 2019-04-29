@@ -1,13 +1,16 @@
-. .\variables.ps1
-$subscription = Get-AzureRmSubscription
-$TemplateRootPath = Join-Path $PSScriptRoot 'templates'
+$ErrorActionPreference="Stop"
 
-if ($subscription) {
+. .\variables.ps1
+
+try {
+    $subscription = Get-AzureRmSubscription
     Write-Host "Connected to Subscription $subscription"
-} 
-else {
-    Connect-AzureRmAccount -Subscription $az_sub  
 }
+catch {
+    Connect-AzureRmAccount -Subscription $az_sub
+}
+
+$TemplateRootPath = Join-Path $PSScriptRoot 'templates'
 
 if (Get-AzureRmResourceGroup -name $rg_name -ErrorAction SilentlyContinue) {
     Write-Host "Resource group $rg_name already exists"
