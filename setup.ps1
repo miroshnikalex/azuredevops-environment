@@ -3,26 +3,33 @@ $ErrorActionPreference="Stop"
 . .\variables.ps1
 
 try {
-    $subscription = Get-AzureRmSubscription
+    $subscription = Get-AzSubscription
     Write-Host "Connected to Subscription $subscription"
 }
 catch {
-    Connect-AzureRmAccount -Subscription $az_sub
+    Connect-AzAccount -Subscription $az_sub
 }
 
 $TemplateRootPath = Join-Path $PSScriptRoot 'templates'
 
-if (Get-AzureRmResourceGroup -name $rg_name -ErrorAction SilentlyContinue) {
+if (Get-AzResourceGroup -name $rg_name -ErrorAction SilentlyContinue) {
     Write-Host "Resource group $rg_name already exists"
 }
 else {
-    New-AzureRmResourceGroup -Name $rg_name -Location $location 
+    New-AzResourceGroup -Name $rg_name -Location $location 
+}
+
+if (Get-AzResourceGroup -name $oms_rg_name -ErrorAction SilentlyContinue) {
+    Write-Host "Resource group $oms_rg_name already exists"
+}
+else {
+    New-AzResourceGroup -Name $oms_rg_name -Location $location 
 }
 
 foreach ($template in `
  (Get-childItem -File -Path $TemplateRootPath | Where-Object {$_.name -like "*-template-*"} | Sort-Object))
 {
-    New-AzureRmResourceGroupDeployment -ResourceGroupName $rg_name `
+    New-AzResourceGroupDeployment -ResourceGroupName $rg_name `
         -TemplateFile $template.fullname `
         -TemplateParameterFile ($template.fullname -replace "-template-", "-parameters-") `
         -Name $template.name `

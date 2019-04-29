@@ -15,7 +15,7 @@
             "value": 3
         },
         "agentVMSize": {
-            "value": "Standard_B2s"
+            "value": "Standard_DS2_v2"
         },
         "servicePrincipalClientId": {
             "reference": {
@@ -43,22 +43,31 @@
             "value": true
         },
         "enableHttpApplicationRouting": {
-            "value": true
+            "value": false
         },
         "vnetSubnetID": {
-            "value": "/subscriptions/efec8216-08f0-482e-a7d4-90ada163eff2/resourceGroups/azuredevops-demo/providers/Microsoft.Network/virtualNetworks/azuredevops-demo-vnet/subnets/default"
+            "value": "/subscriptions/efec8216-08f0-482e-a7d4-90ada163eff2/resourceGroups/azuredevops-demo/providers/Microsoft.Network/virtualNetworks/demo/subnets/dev"
         },
         "serviceCidr": {
-            "value": "10.0.0.0/16"
+            "value": "10.0.20.0/24"
         },
         "dnsServiceIP": {
-            "value": "10.0.0.10"
+            "value": "10.0.20.250"
         },
         "dockerBridgeCidr": {
             "value": "172.17.0.1/16"
         },
         "principalId": {
-            "value": "bf66163b-2f46-4c77-8189-c59ae0607cf4"
+            "value": "b292a866-8420-43fb-8b35-78d6f8967b81"
+        },
+        "workspaceName": {
+            "value": "azuredevops-demo-ws"
+        },
+        "omsWorkspaceId": {
+            "value": "/subscriptions/efec8216-08f0-482e-a7d4-90ada163eff2/resourceGroups/DefaultResourceGroup-WEU/providers/Microsoft.OperationalInsights/workspaces/azuredevops-demo-ws"
+        },
+        "workspaceRegion": {
+            "value": "westeurope"
         }
     }
 }

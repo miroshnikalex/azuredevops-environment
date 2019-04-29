@@ -1,18 +1,26 @@
 . .\variables.ps1
-$subscription = Get-AzureRmSubscription
+$subscription = Get-AzSubscription
 
 if ($subscription) {
     Write-Host "Connected to Subscription $subscription"
 } 
 else {
-    Connect-AzureRmAccount -Subscription $az_sub  
+    Connect-AzAccount -Subscription $az_sub  
 }
 
-if (-not (Get-AzureRmResourceGroup -name $rg_name -ErrorAction SilentlyContinue)) {
+if (-not (Get-AzResourceGroup -name $rg_name -ErrorAction SilentlyContinue)) {
     Write-Host "Resource group $rg_name does not exist"
 }
 else {
-    Remove-AzureRmResourceGroup -Name $rg_name -Force `
+    Remove-AzResourceGroup -Name $rg_name -Force `
     -Verbose
-    Disconnect-AzureRmAccount -Username $user_name -Verbose
 }
+
+if (-not (Get-AzResourceGroup -name $oms_rg_name -ErrorAction SilentlyContinue)) {
+    Write-Host "Resource group $oms_rg_name does not exist"
+}
+else {
+    Remove-AzResourceGroup -Name $oms_rg_name -Force `
+    -Verbose
+}
+Disconnect-AzAccount -Username $user_name -Verbose

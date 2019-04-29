@@ -119,6 +119,50 @@
                 "description": "Boolean flag to turn on and off of http application routing."
             }
         },
+        "enableOmsAgent": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Boolean flag to turn on and off of omsagent addon."
+            }
+        },
+        "workspaceRegion": {
+            "type": "string",
+            "defaultValue": "East US",
+            "metadata": {
+                "description": "Specify the region for your OMS workspace."
+            }
+        },
+        "workspaceName": {
+            "type": "string",
+            "metadata": {
+                "description": "Specify the name of the OMS workspace."
+            }
+        },
+        "omsWorkspaceId": {
+            "type": "string",
+            "metadata": {
+                "description": "Specify the resource id of the OMS workspace."
+            }
+        },
+        "omsSku": {
+            "type": "string",
+            "defaultValue": "standalone",
+            "allowedValues": [
+                "free",
+                "standalone",
+                "pernode"
+            ],
+            "metadata": {
+                "description": "Select the SKU for your workspace."
+            }
+        },
+        "principalId": {
+            "type": "string",
+            "metadata": {
+                "description": "The objectId of service principal."
+            }
+        },
         "vnetSubnetID": {
             "type": "string",
             "metadata": {
@@ -142,20 +186,14 @@
             "metadata": {
                 "description": "A CIDR notation IP for Docker bridge."
             }
-        },
-        "principalId": {
-            "type": "string",
-            "metadata": {
-                "description": "The objectId of service principal."
-            }
         }
     },
     "resources": [
         {
             "apiVersion": "2019-04-01",
             "dependsOn": [
-                "Microsoft.Network/virtualNetworks/azuredevops-demo-vnet",
-                "[concat('Microsoft.Resources/deployments/', 'ClusterSubnetRoleAssignmentDeployment-20190426120318')]"
+                "[concat('Microsoft.Resources/deployments/', 'WorkspaceDeployment-20190429144414')]",
+                "[concat('Microsoft.Resources/deployments/', 'ClusterSubnetRoleAssignmentDeployment-20190429144414')]"
             ],
             "type": "Microsoft.ContainerService/managedClusters",
             "location": "[parameters('location')]",
@@ -188,37 +226,118 @@
                 "addonProfiles": {
                     "httpApplicationRouting": {
                         "enabled": "[parameters('enableHttpApplicationRouting')]"
-                    }
-                }
-            },
-            "tags": {}
-        },
-        {
-            "apiVersion": "2018-08-01",
-            "name": "azuredevops-demo-vnet",
-            "type": "Microsoft.Network/virtualNetworks",
-            "location": "westeurope",
-            "properties": {
-                "subnets": [
-                    {
-                        "name": "default",
-                        "id": "/subscriptions/efec8216-08f0-482e-a7d4-90ada163eff2/resourceGroups/azuredevops-demo/providers/Microsoft.Network/virtualNetworks/azuredevops-demo-vnet/subnets/default",
-                        "properties": {
-                            "addressPrefix": "10.240.0.0/16"
+                    },
+                    "omsagent": {
+                        "enabled": "[parameters('enableOmsAgent')]",
+                        "config": {
+                            "logAnalyticsWorkspaceResourceID": "[parameters('omsWorkspaceId')]"
                         }
                     }
-                ],
-                "addressSpace": {
-                    "addressPrefixes": [
-                        "10.0.0.0/8"
-                    ]
                 }
             },
-            "tags": {}
+            "tags": {
+                "Tier": "Demo"
+            }
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "name": "ClusterSubnetRoleAssignmentDeployment-20190426120318",
+            "name": "SolutionDeployment-20190429144414",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "[split(parameters('omsWorkspaceId'),'/')[4]]",
+            "subscriptionId": "[split(parameters('omsWorkspaceId'),'/')[2]]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "apiVersion": "2015-11-01-preview",
+                            "type": "Microsoft.OperationsManagement/solutions",
+                            "location": "[parameters('workspaceRegion')]",
+                            "name": "[concat('ContainerInsights', '(', split(parameters('omsWorkspaceId'),'/')[8], ')')]",
+                            "properties": {
+                                "workspaceResourceId": "[parameters('omsWorkspaceId')]"
+                            },
+                            "plan": {
+                                "name": "[concat('ContainerInsights', '(', split(parameters('omsWorkspaceId'),'/')[8], ')')]",
+                                "product": "[concat('OMSGallery/', 'ContainerInsights')]",
+                                "promotionCode": "",
+                                "publisher": "Microsoft"
+                            }
+                        }
+                    ]
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', 'WorkspaceDeployment-20190429144414')]"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "WorkspaceDeployment-20190429144414",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "[split(parameters('omsWorkspaceId'),'/')[4]]",
+            "subscriptionId": "[split(parameters('omsWorkspaceId'),'/')[2]]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "apiVersion": "2015-11-01-preview",
+                            "type": "Microsoft.OperationalInsights/workspaces",
+                            "location": "[parameters('workspaceRegion')]",
+                            "name": "[parameters('workspaceName')]",
+                            "properties": {
+                                "sku": {
+                                    "name": "[parameters('omsSku')]"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "ClusterMonitoringMetricPulisherRoleAssignmentDepl-20190429144414",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "azuredevops-demo",
+            "subscriptionId": "efec8216-08f0-482e-a7d4-90ada163eff2",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "type": "Microsoft.ContainerService/managedClusters/providers/roleAssignments",
+                            "apiVersion": "2018-01-01-preview",
+                            "name": "azuredevops-demo/Microsoft.Authorization/095997da-d954-4b00-8166-41ce19f573e0",
+                            "properties": {
+                                "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '3913510d-42f4-4e42-8a64-420c390055eb')]",
+                                "principalId": "[parameters('principalId')]",
+                                "scope": "/subscriptions/efec8216-08f0-482e-a7d4-90ada163eff2/resourceGroups/azuredevops-demo/providers/Microsoft.ContainerService/managedClusters/azuredevops-demo"
+                            }
+                        }
+                    ]
+                }
+            },
+            "dependsOn": [
+                "/subscriptions/efec8216-08f0-482e-a7d4-90ada163eff2/resourceGroups/azuredevops-demo/providers/Microsoft.ContainerService/managedClusters/azuredevops-demo"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "ClusterSubnetRoleAssignmentDeployment-20190429144414",
             "apiVersion": "2017-05-10",
             "resourceGroup": "azuredevops-demo",
             "subscriptionId": "efec8216-08f0-482e-a7d4-90ada163eff2",
@@ -233,19 +352,17 @@
                         {
                             "type": "Microsoft.Network/virtualNetworks/subnets/providers/roleAssignments",
                             "apiVersion": "2017-05-01",
-                            "name": "azuredevops-demo-vnet/default/Microsoft.Authorization/63761d57-6882-49d8-8aa7-7feca73d0e2f",
+                            "name": "demo/dev/Microsoft.Authorization/95179d50-786e-47c0-bf3d-72539eef1977",
                             "properties": {
                                 "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '4d97b98b-1d4f-4787-a291-c67834d212e7')]",
                                 "principalId": "[parameters('principalId')]",
-                                "scope": "/subscriptions/efec8216-08f0-482e-a7d4-90ada163eff2/resourceGroups/azuredevops-demo/providers/Microsoft.Network/virtualNetworks/azuredevops-demo-vnet/subnets/default"
+                                "scope": "/subscriptions/efec8216-08f0-482e-a7d4-90ada163eff2/resourceGroups/azuredevops-demo/providers/Microsoft.Network/virtualNetworks/demo/subnets/dev"
                             }
                         }
                     ]
                 }
             },
-            "dependsOn": [
-                "Microsoft.Network/virtualNetworks/azuredevops-demo-vnet"
-            ]
+            "dependsOn": []
         }
     ],
     "outputs": {
