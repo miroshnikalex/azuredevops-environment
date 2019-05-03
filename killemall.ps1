@@ -23,4 +23,4 @@ else {
     Remove-AzResourceGroup -Name $oms_rg_name -Force `
     -Verbose
 }
-Disconnect-AzAccount -Username $user_name -Verbose
+#Disconnect-AzAccount -Username $user_name -Verbose

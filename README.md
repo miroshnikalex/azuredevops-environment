@@ -13,3 +13,4 @@ underlying infrastructure for azure devops setup
 * 3.0.0 - Replaced AzureRm with AzureAz
 * 3.1.0 - added dirty hack by creating "DefaultResourceGroup-WEU" using PShell
 * 3.1.1 - skeleton for k8s management script has been added (no logic around)
+* 4.0.0 - single parameters file; removed subscription references; etc

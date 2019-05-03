@@ -1,4 +1,32 @@
 {
+    "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "webappName": {
+            "type": "string"
+        },
+        "dockerRegistryUrl": {
+            "type": "string"
+        },
+        "hostingPlanName": {
+            "type": "string"
+        },
+        "hostingEnvironment": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string"
+        },
+        "webAppSku": {
+            "type": "string"
+        },
+        "webAppSkuCode": {
+            "type": "string"
+        },
+        "workerSize": {
+            "type": "string"
+        }
+    },
     "resources": [
         {
             "apiVersion": "2016-03-01",
@@ -23,7 +51,7 @@
                 "clientAffinityEnabled": false,
                 "hostingEnvironment": "[parameters('hostingEnvironment')]"
             },
-            "location": "[parameters('webappLocation')]",
+            "location": "[parameters('location')]",
             "dependsOn": [
                 "[concat('Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]"
             ]
@@ -32,7 +60,7 @@
             "apiVersion": "2016-09-01",
             "name": "[parameters('hostingPlanName')]",
             "type": "Microsoft.Web/serverfarms",
-            "location": "[parameters('webappLocation')]",
+            "location": "[parameters('location')]",
             "properties": {
                 "name": "[parameters('hostingPlanName')]",
                 "workerSizeId": "[parameters('workerSize')]",
@@ -41,41 +69,10 @@
                 "hostingEnvironment": "[parameters('hostingEnvironment')]"
             },
             "sku": {
-                "Tier": "[parameters('sku')]",
-                "Name": "[parameters('skuCode')]"
+                "Tier": "[parameters('webAppSku')]",
+                "Name": "[parameters('webAppSkuCode')]"
             },
             "kind": "linux"
         }
-    ],
-    "parameters": {
-        "webappName": {
-            "type": "string"
-        },
-        "dockerRegistryUrl": {
-            "type": "string"
-        },
-        "hostingPlanName": {
-            "type": "string"
-        },
-        "hostingEnvironment": {
-            "type": "string"
-        },
-        "webappLocation": {
-            "type": "string"
-        },
-        "sku": {
-            "type": "string"
-        },
-        "skuCode": {
-            "type": "string"
-        },
-        "workerSize": {
-            "type": "string"
-        },
-        "serverFarmResourceGroup": {
-            "type": "string"
-        }
-    },
-    "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0"
+    ]
 }

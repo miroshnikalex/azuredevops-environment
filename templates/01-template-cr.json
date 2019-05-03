@@ -8,7 +8,7 @@
                 "description": "The name of the container registry."
             }
         },
-        "registryLocation": {
+        "location": {
             "type": "string",
             "metadata": {
                 "description": "The location of the container registry. This cannot be changed after the resource is created."
@@ -19,13 +19,6 @@
             "defaultValue": "Standard",
             "metadata": {
                 "description": "The SKU of the container registry."
-            }
-        },
-        "registryApiVersion": {
-            "type": "string",
-            "defaultValue": "2017-10-01",
-            "metadata": {
-                "description": "The API version of the container registry."
             }
         },
         "adminUserEnabled": {
@@ -40,8 +33,8 @@
         {
             "name": "[parameters('registryName')]",
             "type": "Microsoft.ContainerRegistry/registries",
-            "location": "[parameters('registryLocation')]",
-            "apiVersion": "[parameters('registryApiVersion')]",
+            "location": "[parameters('location')]",
+            "apiVersion": "2017-10-01",
             "sku": {
                 "name": "[parameters('registrySku')]"
             },

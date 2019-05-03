@@ -2,7 +2,7 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "resourceName": {
+        "AKSResourceName": {
             "type": "string",
             "metadata": {
                 "description": "The name of the Managed Cluster resource."
@@ -12,6 +12,30 @@
             "type": "string",
             "metadata": {
                 "description": "The location of AKS resource."
+            }
+        },
+        "RGName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Resource Group."
+            }
+        },
+        "omsRGName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the OMS workspace Resource Group."
+            }
+        },
+        "keyVaultRGName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the keyvault Resource Group."
+            }
+        },
+        "keyVaultName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of keyvault."
             }
         },
         "dnsPrefix": {
@@ -44,18 +68,6 @@
             "metadata": {
                 "description": "The size of the Virtual Machine."
             }
-        },
-        "servicePrincipalClientId": {
-            "metadata": {
-                "description": "Client ID (used by cloudprovider)."
-            },
-            "type": "securestring"
-        },
-        "servicePrincipalClientSecret": {
-            "metadata": {
-                "description": "The Service Principal Client Secret."
-            },
-            "type": "securestring"
         },
         "osType": {
             "type": "string",
@@ -126,23 +138,10 @@
                 "description": "Boolean flag to turn on and off of omsagent addon."
             }
         },
-        "workspaceRegion": {
-            "type": "string",
-            "defaultValue": "East US",
-            "metadata": {
-                "description": "Specify the region for your OMS workspace."
-            }
-        },
         "workspaceName": {
             "type": "string",
             "metadata": {
                 "description": "Specify the name of the OMS workspace."
-            }
-        },
-        "omsWorkspaceId": {
-            "type": "string",
-            "metadata": {
-                "description": "Specify the resource id of the OMS workspace."
             }
         },
         "omsSku": {
@@ -163,10 +162,16 @@
                 "description": "The objectId of service principal."
             }
         },
-        "vnetSubnetID": {
+        "vnetSubnetName": {
             "type": "string",
             "metadata": {
-                "description": "Resource ID of virtual network subnet used for nodes and/or pods IP assignment."
+                "description": "Name of virtual network subnet used for nodes and/or pods IP assignment."
+            }
+        },
+        "vnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of virtual network used for nodes and/or pods IP assignment."
             }
         },
         "serviceCidr": {
@@ -186,7 +191,23 @@
             "metadata": {
                 "description": "A CIDR notation IP for Docker bridge."
             }
+        },
+        "servicePrincipalClientId": {
+            "type": "string",
+            "metadata": {
+                "description": "AKS service principal client Id."
+            }
+        },
+        "servicePrincipalSecret": {
+            "type": "securestring",
+            "metadata": {
+                "description": "AKS service principal secret."
+            }
         }
+    },
+    "variables": {
+        "vnetSubnetId": "[resourceId(parameters('RGName'),'Microsoft.Network/virtualNetworks/subnets',parameters('vnetName'),parameters('vnetSubnetName'))]",
+        "omsWorkspaceId": "[resourceId(parameters('omsRGName'), 'Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
     },
     "resources": [
         {
@@ -197,7 +218,7 @@
             ],
             "type": "Microsoft.ContainerService/managedClusters",
             "location": "[parameters('location')]",
-            "name": "[parameters('resourceName')]",
+            "name": "[parameters('AKSResourceName')]",
             "properties": {
                 "kubernetesVersion": "[parameters('kubernetesVersion')]",
                 "enableRBAC": "[parameters('enableRBAC')]",
@@ -210,12 +231,12 @@
                         "vmSize": "[parameters('agentVMSize')]",
                         "osType": "[parameters('osType')]",
                         "storageProfile": "ManagedDisks",
-                        "vnetSubnetID": "[parameters('vnetSubnetID')]"
+                        "vnetSubnetID": "[variables('vnetSubnetID')]"
                     }
                 ],
                 "servicePrincipalProfile": {
-                    "ClientId": "[parameters('servicePrincipalClientId')]",
-                    "Secret": "[parameters('servicePrincipalClientSecret')]"
+                    "clientId": "[parameters('servicePrincipalClientId')]",
+                    "secret": "[parameters('servicePrincipalSecret')]"
                 },
                 "networkProfile": {
                     "networkPlugin": "[parameters('networkPlugin')]",
@@ -230,7 +251,7 @@
                     "omsagent": {
                         "enabled": "[parameters('enableOmsAgent')]",
                         "config": {
-                            "logAnalyticsWorkspaceResourceID": "[parameters('omsWorkspaceId')]"
+                            "logAnalyticsWorkspaceResourceID": "[variables('omsWorkspaceId')]"
                         }
                     }
                 }
@@ -243,8 +264,7 @@
             "type": "Microsoft.Resources/deployments",
             "name": "SolutionDeployment-20190429144414",
             "apiVersion": "2017-05-10",
-            "resourceGroup": "[split(parameters('omsWorkspaceId'),'/')[4]]",
-            "subscriptionId": "[split(parameters('omsWorkspaceId'),'/')[2]]",
+            "resourceGroup": "DefaultResourceGroup-WEU",
             "properties": {
                 "mode": "Incremental",
                 "template": {
@@ -256,13 +276,13 @@
                         {
                             "apiVersion": "2015-11-01-preview",
                             "type": "Microsoft.OperationsManagement/solutions",
-                            "location": "[parameters('workspaceRegion')]",
-                            "name": "[concat('ContainerInsights', '(', split(parameters('omsWorkspaceId'),'/')[8], ')')]",
+                            "location": "[parameters('location')]",
+                            "name": "[concat('ContainerInsights', '(', parameters('workspaceName'), ')')]",
                             "properties": {
-                                "workspaceResourceId": "[parameters('omsWorkspaceId')]"
+                                "workspaceResourceId": "[variables('omsWorkspaceId')]"
                             },
                             "plan": {
-                                "name": "[concat('ContainerInsights', '(', split(parameters('omsWorkspaceId'),'/')[8], ')')]",
+                                "name": "[concat('ContainerInsights', '(', parameters('workspaceName'), ')')]",
                                 "product": "[concat('OMSGallery/', 'ContainerInsights')]",
                                 "promotionCode": "",
                                 "publisher": "Microsoft"
@@ -279,8 +299,7 @@
             "type": "Microsoft.Resources/deployments",
             "name": "WorkspaceDeployment-20190429144414",
             "apiVersion": "2017-05-10",
-            "resourceGroup": "[split(parameters('omsWorkspaceId'),'/')[4]]",
-            "subscriptionId": "[split(parameters('omsWorkspaceId'),'/')[2]]",
+            "resourceGroup": "[parameters('omsRGName')]",
             "properties": {
                 "mode": "Incremental",
                 "template": {
@@ -309,7 +328,6 @@
             "name": "ClusterMonitoringMetricPulisherRoleAssignmentDepl-20190429144414",
             "apiVersion": "2017-05-10",
             "resourceGroup": "azuredevops-demo",
-            "subscriptionId": "efec8216-08f0-482e-a7d4-90ada163eff2",
             "properties": {
                 "mode": "Incremental",
                 "template": {
@@ -325,14 +343,14 @@
                             "properties": {
                                 "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '3913510d-42f4-4e42-8a64-420c390055eb')]",
                                 "principalId": "[parameters('principalId')]",
-                                "scope": "/subscriptions/efec8216-08f0-482e-a7d4-90ada163eff2/resourceGroups/azuredevops-demo/providers/Microsoft.ContainerService/managedClusters/azuredevops-demo"
+                                "scope": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/azuredevops-demo/providers/Microsoft.ContainerService/managedClusters/azuredevops-demo')]"
                             }
                         }
                     ]
                 }
             },
             "dependsOn": [
-                "/subscriptions/efec8216-08f0-482e-a7d4-90ada163eff2/resourceGroups/azuredevops-demo/providers/Microsoft.ContainerService/managedClusters/azuredevops-demo"
+                "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/azuredevops-demo/providers/Microsoft.ContainerService/managedClusters/azuredevops-demo')]"
             ]
         },
         {
@@ -340,7 +358,6 @@
             "name": "ClusterSubnetRoleAssignmentDeployment-20190429144414",
             "apiVersion": "2017-05-10",
             "resourceGroup": "azuredevops-demo",
-            "subscriptionId": "efec8216-08f0-482e-a7d4-90ada163eff2",
             "properties": {
                 "mode": "Incremental",
                 "template": {
@@ -352,11 +369,11 @@
                         {
                             "type": "Microsoft.Network/virtualNetworks/subnets/providers/roleAssignments",
                             "apiVersion": "2017-05-01",
-                            "name": "demo/dev/Microsoft.Authorization/95179d50-786e-47c0-bf3d-72539eef1977",
+                            "name": "[concat('demo/dev/Microsoft.Authorization/', parameters('principalId'))]",
                             "properties": {
                                 "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '4d97b98b-1d4f-4787-a291-c67834d212e7')]",
                                 "principalId": "[parameters('principalId')]",
-                                "scope": "/subscriptions/efec8216-08f0-482e-a7d4-90ada163eff2/resourceGroups/azuredevops-demo/providers/Microsoft.Network/virtualNetworks/demo/subnets/dev"
+                                "scope": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/azuredevops-demo/providers/Microsoft.Network/virtualNetworks/demo/subnets/dev')]"
                             }
                         }
                     ]
@@ -368,7 +385,7 @@
     "outputs": {
         "controlPlaneFQDN": {
             "type": "string",
-            "value": "[reference(concat('Microsoft.ContainerService/managedClusters/', parameters('resourceName'))).fqdn]"
+            "value": "[reference(concat('Microsoft.ContainerService/managedClusters/', parameters('AKSResourceName'))).fqdn]"
         }
     }
 }
