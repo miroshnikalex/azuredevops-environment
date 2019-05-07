@@ -23,10 +23,10 @@ foreach ($property in $allParametersObject.PSObject.Properties) {
     $allParameters[$property.Name] = $property.value.value
 }
 # Populating parameters with secrets from the keyvault
-$allParameters['servicePrincipalClientId'] = Get-AzKeyVaultSecret -vaultName $keyVaultName -name "aksappid" | `
-    Select-Object -ExpandProperty 'SecretValueText';
-$allParameters['servicePrincipalSecret'] = Get-AzKeyVaultSecret -vaultName $keyVaultName -name "akssecret" | `
-    Select-Object -ExpandProperty 'SecretValueText';
+$allParameters['servicePrincipalClientId'] = (Get-AzKeyVaultSecret -vaultName $keyVaultName -name "aksappid" ).SecretValueText
+$allParameters['servicePrincipalSecret']   = (Get-AzKeyVaultSecret -vaultName $keyVaultName -name "akssecret").SecretValueText
+$allParameters['servicePrincipalObjectId'] = (Get-AzKeyVaultSecret -vaultName $keyVaultName -name "aksspid"  ).SecretValueText
+
 
 # Creating resource groups
 foreach ($rgNameKey in ($allParameters.keys | Where-Object {$_ -like '*RGName'})) {
@@ -57,7 +57,7 @@ foreach ($template in $templateFiles)
     }
 
     # Running template deployment
-    New-AzResourceGroupDeployment -ResourceGroupName $rg_name `
+    New-AzResourceGroupDeployment -ResourceGroupName $allParameters['RGName'] `
         -TemplateFile $template.fullname `
         -TemplateParameterObject $filteredParams `
         -Name $template.name `

@@ -9,13 +9,7 @@
             "value": "azuredevops-demo"
         },
         "omsRGName": {
-            "value": "DefaultResourceGroup-WEU"
-        },
-        "keyVaultRGName": {
-            "value": "devkeyvaultmain"
-        },
-        "keyVaultName": {
-            "value": "levkeyvaultmain"
+            "value": "azuredevops-demo-oms"
         },
         "addressPrefix": {
             "value": "10.0.0.0/16"
@@ -103,9 +97,6 @@
         },
         "dockerBridgeCidr": {
             "value": "172.17.0.1/16"
-        },
-        "principalId": {
-            "value": "d357f033-b1ac-49b4-8e7e-44fae82b1be7"
         },
         "workspaceName": {
             "value": "azuredevops-demo-ws"
